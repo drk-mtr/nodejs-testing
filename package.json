@@ -1,8 +1,8 @@
 {
-  "name": "nodejs-testing",
-  "displayName": "node:test runner",
-  "description": "Test integration for node:test native tests",
-  "publisher": "connor4312",
+  "name": "nodejs-testing-with-error-cause",
+  "displayName": "node:test runner with error cause",
+  "description": "Test integration for node:test native tests (with error cause)",
+  "publisher": "drk-mtr (all good work done by connor4312)",
   "version": "1.5.1",
   "engines": {
     "vscode": "^1.88.0"

@@ -82,13 +82,33 @@ for (const channel of ["stderr", "stdout"] as const) {
     },
   });
 }
+type ErrorNested = Error & { cause: Error | any };
+
+const appendNewLineIfSome = (str: string | null | undefined) => str ? `${str}\r\n` : '';
+
+const buildStackPhrase = (msg: string, error: ErrorNested, errorDepth = 0) => {
+  const prefix = msg + '\r\n';
+  const message = errorDepth == 0 ? '' : appendNewLineIfSome((error as any).message);
+  const stack = appendNewLineIfSome((error as any).stack);
+  return prefix + message + stack;
+}
+
+const maxErrorDepth = 5;
+
+const buildErrorString = (error: ErrorNested, msg: string = '', errorDepth: number = 0): string =>
+  error.cause && errorDepth < maxErrorDepth - 1
+    ? buildErrorString(error.cause, buildStackPhrase(msg, error, errorDepth), errorDepth + 1)
+    : buildStackPhrase(msg, error);
 
 module.exports = async function* reporter(source: AsyncGenerator<TestEvent>) {
   for await (const evt of source) {
     if (evt.type === "test:fail") {
       const err = evt.data.details.error as Error & { cause?: any };
       if (err.cause instanceof Error) {
-        (err.cause as any)._message = err.cause.message;
+        (err.cause as any)._message =
+          buildErrorString(
+            err.cause as ErrorNested, 
+            err.cause.message + '\r\n');
         (err.cause as any)._stack = err.stack ? parse(err.stack) : undefined;
       }
 
